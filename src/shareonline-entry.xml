@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<entry xmlns="http://purl.org/atom/ns#">
+<title>{{ entry.title }}</title>
+<summary>{{ entry.summmary }}</summary>
+<issued>{{ entry.issued|date:"Y-m-d H:i:s" }}Z</issued>
+<link type="text/html" rel="alternative" href="{{ entry.link_href }}" title="HTML" />
+<id>{{ entry.id }}</id>
+</entry>

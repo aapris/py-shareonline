@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<feed version="0.3"
+      xmlns="http://purl.org/atom/ns#"
+      xmlns:dc="http://purl.org/dc/elements/1.1/"
+      xml:lang="en">
+  <link rel="service.post" href="http://127.0.0.1:8000/so.save/pub" type="application/x.atom+xml" title="PUBLIC" />
+  <link rel="service.post" href="http://127.0.0.1:8000/so.save/res" type="application/x.atom+xml" title="RESTRICED" />
+  <link rel="service.feed" href="http://127.0.0.1:8000/so.feed" type="application/x.atom+xml" title="Plok.in 127.0.0.1:8000" />
+  <link rel="alternate" href="http://127.0.0.1:8000" type="text/html" title="Plok.in 127.0.0.1:8000" />
+</feed>
+

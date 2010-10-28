@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<configure_file service_id="com.example" category_id="1" coding_id="2" version="1.0">
+<provider> 
+  <configure_file_URL>http://www.example.com/config</configure_file_URL> 
+  <browserView reltype="alternate" /> 
+  <signup_URL></signup_URL> 
+  <easy_registration_URL></easy_registration_URL> 
+</provider>
+<laf> 
+  <title>Plok.in 192.168.0.153:8000</title> 
+  <context_pane_icon file='defaulticon.svg'>defaulticon.svg</context_pane_icon>
+  <selection_list_icon file='defaulticon.svg'>defaulticon.svg</selection_list_icon>
+  <icon file='defaulticon.svg' encoding='BASE64'>PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG2Zz4NCg==</icon>
+</laf>
+<media_options> 
+  <format_list> 
+    <format>image/jpeg</format> 
+    <format>video/mp4</format> 
+    <format>video/3gpp</format> 
+    <format>audio/amr</format> 
+  </format_list> 
+  <maximum_pixels horizontal="0" vertical="0" /> 
+  <maximum_bytes bytes="0" /> 
+</media_options>
+<entry_options> 
+  <title_text present="0" required="0" /> 
+  <caption_text present="1" required="0" /> 
+  <body_text present="0" required="0" /> 
+  <min_items items="1" /> 
+  <max_items items="1" /> 
+  <max_size size="0" /> 
+  <tags present='1' required='0'/> 
+  <privacy_levels present='1' required='0' /> 
+</entry_options>
+<location_options>
+  <gps_info present='1' />
+  <network_info present='1' />
+</location_options>
+<protocol_options> 
+  <protocol plugin="Atom" version="0.3" authentication="wsse"> 
+    <endpoint_path>http://www.example.com/service</endpoint_path> 
+    <roundtrip_editing>0</roundtrip_editing> 
+  </protocol> 
+</protocol_options> 
+</configure_file>

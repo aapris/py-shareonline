@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd">
+<svg version="1.1" baseProfile="tiny" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+	 x="0px" y="0px" width="256px" height="256px" viewBox="0 0 256 256" xml:space="preserve">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .red {fill:red;}
+    .sser {font-weight:normal; font-family: sans-serif; text-decoration:none;}
+   ]]>
+  </style>
+ </defs>
+ <g id="mainlayer" font-size="60">
+  <text class="sser red" x="20" y="60">Default<tspan x="20" y="140">Icon</tspan><tspan x="20" y="220">.svg</tspan></text>
+ </g>
+</svg>
