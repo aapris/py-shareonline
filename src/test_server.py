@@ -1,5 +1,5 @@
 import os
-import datetime
+#import datetime
 import web
 import shareonline_config
 import shareonline
@@ -29,7 +29,7 @@ def services(slist):
     feed_e = services_doc.getElementsByTagName('feed')[0]
     while feed_e.hasChildNodes():
         for e in feed_e.childNodes:
-            print feed_e.removeChild(e)
+            feed_e.removeChild(e)
     for link in slist:
         link_e = services_doc.createElement('link')
         for attr in link.keys():
@@ -161,7 +161,7 @@ class config:
     def GET(self):
         host = _get_host(web)
         web.header('Content-Type', 'application/isf.sharing.config')
-        return shareonline_config.create_config_xml(sharing_settings, host)
+        return shareonline_config.config_create_xml(sharing_settings, host)
 
 class service:
     def GET(self):
@@ -207,7 +207,6 @@ class post:
         print entry_xml
         web.Created()
         return entry_xml
-
 
 app = web.application(urls, globals())
 

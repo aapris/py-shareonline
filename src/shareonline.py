@@ -131,7 +131,7 @@ def _parse_request_xml(xml):
     # Link is a special case and it has a href attribute, 
     # which contains an ID of previously posted content.
     # (This may mean that client is verifying that post was successful
-    # or wants to update it's data.)
+    # or wants to update it's data.
     link = dom.getElementsByTagName('link')
     if link and link[0].attributes['href'].value:
         data['uid'] = link[0].attributes['href'].value

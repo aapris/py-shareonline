@@ -12,18 +12,18 @@ def _removeChildNodes(e):
 
 ###### config file related functions ###### 
 
-def set_provider(doc, conf, host):
+def config_set_provider(doc, conf, host):
     """Populate elements inside <provider> element."""
     provider_e = doc.getElementsByTagName('provider')[0]
     for key in conf:
         key_e = provider_e.getElementsByTagName(key)[0]
         if conf[key]:
-            conf[key] = host + conf[key] 
+            #conf[key] = host + conf[key] 
             for node in key_e.childNodes:
                 key_e.removeChild(node)
-            key_e.appendChild(doc.createTextNode(conf[key]))
+            key_e.appendChild(doc.createTextNode(host + conf[key]))
 
-def set_laf(doc, conf):
+def config_set_laf(doc, conf):
     """Populate elements inside <laf> element."""
     laf_e = doc.getElementsByTagName('laf')[0]
     # Set title
@@ -43,7 +43,7 @@ def set_laf(doc, conf):
         else:
             icon_e.appendChild(doc.createTextNode(iconfilename))
 
-def set_media_options(doc, conf):
+def config_set_media_options(doc, conf):
     """Populate elements inside <media_options> element."""
     media_options_e = doc.getElementsByTagName('media_options')[0]
     format_list_e = media_options_e.getElementsByTagName('format_list')[0]
@@ -62,34 +62,34 @@ def set_media_options(doc, conf):
         for attr in conf[media_tag]:
             media_e.setAttribute(attr, conf[media_tag][attr])
 
-def set_attributes(doc, tagname, conf):
-    """General function to set element's attributes (inside <tagname)."""
+def config_set_attributes(doc, tagname, conf):
+    """General function to set element's attributes (inside <tagname>)."""
     parent = doc.getElementsByTagName(tagname)[0]
     for tag in conf.keys():
         elem = parent.getElementsByTagName(tag)[0]
         for attr in conf[tag]:
             elem.setAttribute(attr, conf[tag][attr])
 
-def set_post_url(doc, url, host):
+def config_set_post_url(doc, url, host):
     endpoint_path_e = doc.getElementsByTagName('endpoint_path')[0]
     _removeChildNodes(endpoint_path_e)
     endpoint_path_e.appendChild(doc.createTextNode(host + url))
 
-def set_service_id(doc, service_id):
+def config_set_service_id(doc, service_id):
     configure_file_e = doc.getElementsByTagName('configure_file')[0]
     configure_file_e.setAttribute('service_id', service_id)
 
-def create_config_xml(sharing_settings, host):
+def config_create_xml(sharing_settings, host):
     config_doc = xml.dom.minidom.parse('shareonline-config.xml')
-    set_service_id(config_doc, sharing_settings.service_id)
-    set_provider(config_doc, sharing_settings.provider, host)
-    set_laf(config_doc, sharing_settings.laf)
-    set_media_options(config_doc, sharing_settings.media_options)
-    set_attributes(config_doc, 'entry_options', sharing_settings.entry_options)
-    set_attributes(config_doc, 'location_options', sharing_settings.location_options)
-    set_post_url(config_doc, sharing_settings.post_url, host)
+    config_set_service_id(config_doc, sharing_settings.service_id)
+    config_set_provider(config_doc, sharing_settings.provider, host)
+    config_set_laf(config_doc, sharing_settings.laf)
+    config_set_media_options(config_doc, sharing_settings.media_options)
+    config_set_attributes(config_doc, 'entry_options', sharing_settings.entry_options)
+    config_set_attributes(config_doc, 'location_options', sharing_settings.location_options)
+    config_set_post_url(config_doc, sharing_settings.post_url, host)
     return config_doc.toprettyxml('', newl='', encoding='utf-8')
 
 if __name__ == '__main__':
     import sharing_settings
-    print create_config_xml(sharing_settings, 'http://0.0.0.0:8080')
+    print config_create_xml(sharing_settings, 'http://0.0.0.0:8080')
