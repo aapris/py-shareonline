@@ -88,9 +88,8 @@ def wsse_auth_failed(realm):
     headers['Content-Type'] = 'text/plain; charset=UTF-8'
     return headers, body
 
-###### Posted data handlers ###### 
+###### Post data handlers ###### 
  
-
 def _save_post_data(raw_post_data, path, postfix):
     """
     Saves request's raw post data (xml) to a file.
@@ -139,11 +138,11 @@ def _parse_request_xml(xml):
 
 if __name__ == '__main__':
     username = 'Test'
-    password = 'kissa'
+    password = 'cat'
     http_x_wsse = wsse_header(username, password)
     print http_x_wsse
-    validated_username = wsse_auth(http_x_wsse, 'kissa')
+    validated_username = wsse_auth(http_x_wsse, 'cat')
     if username == validated_username:
-        print "Valid Username:", wsse_auth(http_x_wsse, 'kissa')
+        print "Valid Username:", wsse_auth(http_x_wsse, 'cat')
     else:
         print "Validation failed"
