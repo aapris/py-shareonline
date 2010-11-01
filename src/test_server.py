@@ -1,7 +1,6 @@
+# 
 import os
-#import datetime
 import web
-import shareonline_config
 import shareonline
 import xml.dom.minidom
 import glob
@@ -18,56 +17,11 @@ urls = (
   '/file/(.*)', 'showfile',
 )
 
-
 RAWPOSTDATA_DIR = 'rawpostdata'
 CACHE_DIR = 'static'
 
 def _get_host(web):
     return '%s://%s' % (web.ctx.env['wsgi.url_scheme'], web.ctx.env['HTTP_HOST'])
-
-def services(slist):
-    services_doc = xml.dom.minidom.parse('shareonline-service.xml')
-    feed_e = services_doc.getElementsByTagName('feed')[0]
-    while feed_e.hasChildNodes():
-        for e in feed_e.childNodes:
-            feed_e.removeChild(e)
-    for link in slist:
-        link_e = services_doc.createElement('link')
-        for attr in link.keys():
-            link_e.setAttribute(attr, link[attr])
-        feed_e.appendChild(link_e)
-    web.header('Content-Type', 'application/atom+xml; charset=UTF-8')
-    return services_doc.toprettyxml('', newl='', encoding='utf-8')
-
-
-def createElementWithText(doc, tagname, text):
-    "Create new element 'tagname' and put 'text' node into it"
-    element = doc.createElement(tagname)
-    text_node = doc.createTextNode(text)
-    element.appendChild(text_node)
-    return element
-
-def create_entry(data):
-    """
-    Creates 'entry' xml document.
-    This function uses xml.dom.minidom to create document from scratch. 
-    """
-    impl = xml.dom.minidom.getDOMImplementation()
-    doc = impl.createDocument(None, "entry", None)
-    entry_e = doc.documentElement
-    entry_e.setAttribute('xmlns', 'http://purl.org/atom/ns#')
-    entry_e.appendChild(createElementWithText(doc, 'title', data['title']))
-    entry_e.appendChild(createElementWithText(doc, 'summary', data['summary']))
-    entry_e.appendChild(createElementWithText(doc, 'issued', data['issued']))
-    link_e = doc.createElement('link')
-    for attr, val in [('type', 'text/html'), 
-                      ('rel', 'alternative'), 
-                      ('title', 'HTML')]:
-        link_e.setAttribute(attr, val)
-    link_e.setAttribute('href', data['link'])
-    entry_e.appendChild(link_e)
-    entry_e.appendChild(createElementWithText(doc, 'id', data['id']))
-    return doc.toprettyxml('', newl='', encoding='utf-8')
 
 # Views:
 
@@ -163,7 +117,7 @@ class config:
     def GET(self):
         host = _get_host(web)
         web.header('Content-Type', 'application/isf.sharing.config')
-        return shareonline_config.config_create_xml(sharing_settings, host)
+        return shareonline.config_create_xml(sharing_settings, host)
 
 def authenticate_user(web):
     http_x_wsse = web.ctx.env.get('HTTP_X_WSSE', '')
@@ -187,7 +141,7 @@ class service:
         slist.append({'rel': 'service.feed', 'href': host + '/feed', 'type': 'application/atom+xml', 'title': 'Shareonline provider demo feed'})
         slist.append({'rel': 'alternate', 'href': host + '', 'type': 'text/html', 'title': 'Shareonline demo site'})
         web.header('Content-Type', 'application/atom+xml; charset=UTF-8')
-        return services(slist)
+        return shareonline.services(slist)
 
 def get_filename(post_file, data):
     contentfile_name = os.path.basename(post_file)
@@ -224,7 +178,7 @@ class post:
         data['id'] = contentfile_name
         data['link'] = "/entry/" + contentfile_name
         #print data
-        entry_xml = create_entry(data)
+        entry_xml = shareonline.create_entry(data)
         #print entry_xml
         web.Created()
         shareonline._save_post_data(entry_xml, RAWPOSTDATA_DIR, username + '-response')

@@ -12,7 +12,6 @@ provider['easy_registration_URL'] = None
 laf = {}
 laf['title'] = 'Shareonline demo' # Title to show in Online Share's provider list
 laf['icon_svg_path'] = 'defaulticon.svg' # Full path to the icon file
-laf['icon_svg_path'] = 'svg.svg' # Full path to the icon file
 
 media_options = {}
 media_options['format_list'] = [ # Supported mimetypes
