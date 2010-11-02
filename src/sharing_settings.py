@@ -1,11 +1,12 @@
+# -*- coding: utf8 -*-
 # Share online provider settings
 
-service_id = 'com.example.shareonline'
-post_url = '/service'
+service_id = 'com.example.shareonline' # Mandatory and unique for your app
+post_url = '/service' # Returns list of feeds (or channels), mandatory
 
 # Provider
 provider = {}
-provider['configure_file_URL'] = '/config' # The URL of this file
+provider['configure_file_URL'] = '/config' # Returns configuration file (the URL of this file), mandatory
 provider['signup_URL'] = None
 provider['easy_registration_URL'] = None
 
@@ -14,7 +15,7 @@ laf['title'] = 'Shareonline demo' # Title to show in Online Share's provider lis
 laf['icon_svg_path'] = 'defaulticon.svg' # Full path to the icon file
 
 media_options = {}
-media_options['format_list'] = [ # Supported mimetypes
+media_options['format_list'] = [ # Supported mimetypes or file formats
     'image/jpeg', 'image/png',
     'video/mp4', 'video/3gpp',
     'audio/amr', 'audio/wav', 'audio/mp3',

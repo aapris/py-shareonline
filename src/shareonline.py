@@ -1,13 +1,10 @@
-'''
-Created on Oct 21, 2010
+# -*- coding: utf8 -*-
 
-@author: arista
-'''
+"""
+Initial Share online provider library implementation
+http://wiki.forum.nokia.com/index.php/How_to_create_your_own_Share_Online_provider
+"""
 
-# Initial Share online implementation
-# http://wiki.forum.nokia.com/index.php/How_to_create_your_own_Share_Online_provider
-
-#import sys
 import os
 import re
 import time
@@ -16,14 +13,87 @@ import hashlib
 import datetime
 import xml.dom.minidom
 
+###### XML document skeletons ###### 
+
+CONFIG_XML = """<?xml version="1.0" encoding="UTF-8" ?>
+<configure_file service_id="com.example" category_id="1" coding_id="2" version="1.0">
+<provider> 
+  <configure_file_URL>http://www.example.com/config</configure_file_URL> 
+  <browserView reltype="alternate" /> 
+  <signup_URL></signup_URL> 
+  <easy_registration_URL></easy_registration_URL> 
+</provider>
+<laf> 
+  <title>Example.Com</title> 
+  <context_pane_icon file='defaulticon.svg'>defaulticon.svg</context_pane_icon>
+  <selection_list_icon file='defaulticon.svg'>defaulticon.svg</selection_list_icon>
+  <icon file='defaulticon.svg' encoding='BASE64'>PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG2Zz4NCg==</icon>
+</laf>
+<media_options> 
+  <format_list> 
+    <format>image/jpeg</format> 
+    <format>video/mp4</format> 
+    <format>video/3gpp</format> 
+    <format>audio/amr</format> 
+  </format_list> 
+  <maximum_pixels horizontal="0" vertical="0" /> 
+  <maximum_bytes bytes="0" /> 
+</media_options>
+<entry_options> 
+  <title_text present="0" required="0" /> 
+  <caption_text present="1" required="0" /> 
+  <body_text present="0" required="0" /> 
+  <min_items items="1" /> 
+  <max_items items="1" /> 
+  <max_size size="0" /> 
+  <tags present='1' required='0'/> 
+  <privacy_levels present='1' required='0' /> 
+</entry_options>
+<location_options>
+  <gps_info present='1' />
+  <network_info present='1' />
+</location_options>
+<protocol_options> 
+  <protocol plugin="Atom" version="0.3" authentication="wsse"> 
+    <endpoint_path>http://www.example.com/service</endpoint_path> 
+    <roundtrip_editing>0</roundtrip_editing> 
+  </protocol> 
+</protocol_options> 
+</configure_file>
+"""
+
+SERVICE_XML = """<?xml version="1.0" encoding="UTF-8" ?>
+<feed version="0.3"
+      xmlns="http://purl.org/atom/ns#"
+      xmlns:dc="http://purl.org/dc/elements/1.1/"
+      xml:lang="en">
+  <link rel="service.post" href="http://www.example.com/post/pub" type="application/x.atom+xml" title="PUBLIC" />
+  <link rel="service.post" href="http://www.example.com/post/res" type="application/x.atom+xml" title="RESTRICED" />
+  <link rel="service.feed" href="http://www.example.com/feed" type="application/x.atom+xml" title="Latest" />
+  <link rel="alternate" href="http://www.example.com/" type="text/html" title="Example.com home page" />
+</feed>
+"""
+
+ENTRY_XML = """<?xml version="1.0" encoding="UTF-8" ?>
+<entry xmlns="http://purl.org/atom/ns#">
+<title>{{ entry.title }}</title>
+<summary>{{ entry.summmary }}</summary>
+<issued>{{ entry.issued|date:"Y-m-d H:i:s" }}Z</issued>
+<link type="text/html" rel="alternative" href="{{ entry.link_href }}" title="HTML" />
+<id>{{ entry.id }}</id>
+</entry>
+"""
+
 
 ###### WSSE authentication related functions ###### 
 # wsse_re = re.compile('UsernameToken Username="([^"]+)", PasswordDigest="([^"]+)", Nonce="([^"]+)", Created="([^"]+)"')
 WSSE_RE = re.compile(r"""\b([a-zA-Z]+)\s*=\s*["']([^"]+)["']""")
 
 class WsseAuthError(Exception):
+    "Custom Error class for WSSE errors."
 
     def __init__(self, value):
+#        super(Exception, self).__init__()
         self.value = value
 
     def __str__(self):
@@ -92,14 +162,15 @@ def wsse_auth_failed(realm):
 ###### config file related functions ###### 
 
 # FIXME: This doesn't work as expected (leaves whitespace)
-def _removeChildNodes(e):
-    while e.hasChildNodes():
-        n = e.firstChild
-        _removeChildNodes(n)
-        e.removeChild(n)
+def _remove_child_nodes(elem):
+    "Removes all child nodes from 'elem'."
+    while elem.hasChildNodes():
+        node = elem.firstChild
+        _remove_child_nodes(node)
+        elem.removeChild(node)
 
 def config_set_provider(doc, conf, host):
-    """Populate elements inside <provider> element."""
+    """Populates elements inside <provider> element."""
     provider_e = doc.getElementsByTagName('provider')[0]
     for key in conf:
         key_e = provider_e.getElementsByTagName(key)[0]
@@ -110,11 +181,11 @@ def config_set_provider(doc, conf, host):
             key_e.appendChild(doc.createTextNode(host + conf[key]))
 
 def config_set_laf(doc, conf):
-    """Populate elements inside <laf> element."""
+    """Populates elements inside <laf> element."""
     laf_e = doc.getElementsByTagName('laf')[0]
     # Set title
     title_e = laf_e.getElementsByTagName('title')[0]
-    _removeChildNodes(title_e)
+    _remove_child_nodes(title_e)
     title_e.appendChild(doc.createTextNode(conf['title']))
     # Set all 3 '*icon' elements, all of them have 'file' attribute
     iconfilename = os.path.basename(conf['icon_svg_path'])
@@ -130,17 +201,16 @@ def config_set_laf(doc, conf):
             icon_e.appendChild(doc.createTextNode(iconfilename))
 
 def config_set_media_options(doc, conf):
-    """Populate elements inside <media_options> element."""
+    """Populates elements inside <media_options> element."""
     media_options_e = doc.getElementsByTagName('media_options')[0]
     format_list_e = media_options_e.getElementsByTagName('format_list')[0]
     format_list_e.appendChild(doc.createTextNode('\n    '))
-    for e in format_list_e.getElementsByTagName('format'):
-        # e.normalize()
-        _removeChildNodes(e)
-        format_list_e.removeChild(e)
-    for format in conf['format_list']:
+    for elem in format_list_e.getElementsByTagName('format'):
+        _remove_child_nodes(elem)
+        format_list_e.removeChild(elem)
+    for format_type in conf['format_list']:
         format_e = doc.createElement('format')
-        format_e.appendChild(doc.createTextNode(format))
+        format_e.appendChild(doc.createTextNode(format_type))
         format_list_e.appendChild(format_e)
         format_list_e.appendChild(doc.createTextNode('\n    '))
     for media_tag in ['maximum_pixels', 'maximum_bytes']:
@@ -157,33 +227,41 @@ def config_set_attributes(doc, tagname, conf):
             elem.setAttribute(attr, conf[tag][attr])
 
 def config_set_post_url(doc, url, host):
+    "Sets the value of <endpoint_path> element"
     endpoint_path_e = doc.getElementsByTagName('endpoint_path')[0]
-    _removeChildNodes(endpoint_path_e)
+    _remove_child_nodes(endpoint_path_e)
     endpoint_path_e.appendChild(doc.createTextNode(host + url))
 
 def config_set_service_id(doc, service_id):
+    "Sets the value of service_id attribute in <configure> element"
     configure_file_e = doc.getElementsByTagName('configure_file')[0]
     configure_file_e.setAttribute('service_id', service_id)
 
 def config_create_xml(sharing_settings, host):
-    config_doc = xml.dom.minidom.parse('shareonline-config.xml')
+    "Sets all values in configure file."
+    #config_doc = xml.dom.minidom.parse('shareonline-config.xml')
+    config_doc = xml.dom.minidom.parseString(CONFIG_XML)
     config_set_service_id(config_doc, sharing_settings.service_id)
     config_set_provider(config_doc, sharing_settings.provider, host)
     config_set_laf(config_doc, sharing_settings.laf)
     config_set_media_options(config_doc, sharing_settings.media_options)
-    config_set_attributes(config_doc, 'entry_options', sharing_settings.entry_options)
-    config_set_attributes(config_doc, 'location_options', sharing_settings.location_options)
+    config_set_attributes(config_doc, 'entry_options', 
+                          sharing_settings.entry_options)
+    config_set_attributes(config_doc, 'location_options', 
+                          sharing_settings.location_options)
     config_set_post_url(config_doc, sharing_settings.post_url, host)
     return config_doc.toprettyxml('', newl='', encoding='utf-8')
 
 ###### Service document ######
 
 def services(slist):
-    services_doc = xml.dom.minidom.parse('shareonline-service.xml')
+    "Creates 'service' xml document."
+    #services_doc = xml.dom.minidom.parse('shareonline-service.xml')
+    services_doc = xml.dom.minidom.parseString(SERVICE_XML)
     feed_e = services_doc.getElementsByTagName('feed')[0]
     while feed_e.hasChildNodes():
-        for e in feed_e.childNodes:
-            feed_e.removeChild(e)
+        for node in feed_e.childNodes:
+            feed_e.removeChild(node)
     for link in slist:
         link_e = services_doc.createElement('link')
         for attr in link.keys():
@@ -193,8 +271,8 @@ def services(slist):
 
 ###### Post handlers ######
 
-def createElementWithText(doc, tagname, text):
-    "Create new element 'tagname' and put 'text' node into it"
+def create_element_with_text(doc, tagname, text):
+    "Creates new element 'tagname' and put 'text' node into it"
     element = doc.createElement(tagname)
     text_node = doc.createTextNode(text)
     element.appendChild(text_node)
@@ -209,9 +287,9 @@ def create_entry(data):
     doc = impl.createDocument(None, "entry", None)
     entry_e = doc.documentElement
     entry_e.setAttribute('xmlns', 'http://purl.org/atom/ns#')
-    entry_e.appendChild(createElementWithText(doc, 'title', data['title']))
-    entry_e.appendChild(createElementWithText(doc, 'summary', data['summary']))
-    entry_e.appendChild(createElementWithText(doc, 'issued', data['issued']))
+    entry_e.appendChild(create_element_with_text(doc, 'title', data['title']))
+    entry_e.appendChild(create_element_with_text(doc, 'summary', data['summary']))
+    entry_e.appendChild(create_element_with_text(doc, 'issued', data['issued']))
     link_e = doc.createElement('link')
     for attr, val in [('type', 'text/html'), 
                       ('rel', 'alternative'), 
@@ -219,10 +297,8 @@ def create_entry(data):
         link_e.setAttribute(attr, val)
     link_e.setAttribute('href', data['link'])
     entry_e.appendChild(link_e)
-    entry_e.appendChild(createElementWithText(doc, 'id', data['id']))
+    entry_e.appendChild(create_element_with_text(doc, 'id', data['id']))
     return doc.toprettyxml('', newl='', encoding='utf-8')
-
-
 
 ###### Post data handlers ###### 
  
@@ -233,7 +309,8 @@ def _save_post_data(raw_post_data, path, postfix):
     """
     try:
         now = datetime.datetime.now()
-        filename = now.strftime('%Y%m%dT%H%M%S') + '.%06d-' % now.microsecond + postfix + ".xml"
+        filename = now.strftime('%Y%m%dT%H%M%S') + '.%06d-' % \
+                   now.microsecond + postfix + ".xml"
         filepath = os.path.join(path, filename)
         f = open(filepath, 'wb')
         f.write(raw_post_data)
@@ -245,15 +322,15 @@ def _save_post_data(raw_post_data, path, postfix):
         return None
 
 def _parse_request_xml(xmldata):
-    """Parse request XML and return data from all known elements."""
+    """Parses request XML and returns data from all known elements."""
     dom = xml.dom.minidom.parseString(xmldata)
     text_tags = ['title', 'summary', 'generator', 'dc:subject', 'issued']
     data = {}
     # Try to find all known elements, which contain only text
     for tag in text_tags:
-        e = dom.getElementsByTagName(tag)
-        if e and e[0].firstChild:
-            data[tag] = e[0].firstChild.data.strip()
+        elem = dom.getElementsByTagName(tag)
+        if elem and elem[0].firstChild:
+            data[tag] = elem[0].firstChild.data.strip()
     # Content is a special case containing BASE64 encoded filedata
     content = dom.getElementsByTagName('content')
     if content:
@@ -273,12 +350,12 @@ def _parse_request_xml(xmldata):
     return data
 
 if __name__ == '__main__':
-    username = 'Test'
-    password = 'cat'
-    http_x_wsse = wsse_header(username, password)
-    print http_x_wsse
-    validated_username = wsse_auth(http_x_wsse, 'cat')
-    if username == validated_username:
-        print "Valid Username:", wsse_auth(http_x_wsse, 'cat')
+    USERNAME = 'Test'
+    PASSWORD = 'cat'
+    HTTP_X_WSSE = wsse_header(USERNAME, PASSWORD)
+    print HTTP_X_WSSE
+    VALIDATED_USERNAME = wsse_auth(HTTP_X_WSSE, 'cat')
+    if USERNAME == VALIDATED_USERNAME:
+        print "Valid Username:", wsse_auth(HTTP_X_WSSE, 'cat')
     else:
         print "Validation failed"

@@ -1,8 +1,9 @@
-# 
+# -*- coding: utf8 -*-
+
 import os
 import web
 import shareonline
-import xml.dom.minidom
+#import xml.dom.minidom
 import glob
 import sharing_settings
 
@@ -21,6 +22,10 @@ RAWPOSTDATA_DIR = 'rawpostdata'
 CACHE_DIR = 'static'
 
 def _get_host(web):
+    """
+    Returns protocol and host part of request URL, e.g.
+    http://127.0.0.1:8080
+    """
     return '%s://%s' % (web.ctx.env['wsgi.url_scheme'], web.ctx.env['HTTP_HOST'])
 
 # Views:
@@ -58,6 +63,8 @@ class latest:
 
 class showentry:
     """
+    Reads the original post, parses the filedata.
+    Returns HTML document with <img> tag if file's type is image/*.
     """
     def GET(self, postfile):
         post = os.path.join(RAWPOSTDATA_DIR, postfile)
@@ -68,13 +75,13 @@ class showentry:
         html.append(u"""<h1>%(summary)s</h1>""" % (data))
         if data['filetype'].startswith('image'):
             html.append(u"""<img src="/file/%s" width="400" alt=""/>""" % (postfile)) 
-        #del data['filedata']
-        #print data
         web.header('Content-Type', 'text/html; charset=UTF-8')
         return u"\n".join(html)
 
 class showfile:
     """
+    Reads the original post, parses the filedata
+    Returns filedata with correct Content-Type header.
     """
     def GET(self, postfile):
         post = os.path.join(RAWPOSTDATA_DIR, postfile)
@@ -91,7 +98,7 @@ class feed:
     """
     def GET(self):
         host = _get_host(web)
-        posts = ['<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="fi">']
+        posts = ['<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">']
         # Read all raw posts to a list
         postfiles = glob.glob(RAWPOSTDATA_DIR + '/*.xml')
         postfiles.sort()
