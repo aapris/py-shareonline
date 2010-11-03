@@ -335,7 +335,7 @@ def _parse_request_xml(xmldata):
     if content:
         if content[0].attributes['mode'].value.lower() == 'base64':
             data['filedata'] = base64.b64decode(content[0].firstChild.data)
-            data['filetype'] = content[0].attributes['type'].value.lower()
+            data['filetype'] = content[0].attributes['type'].value.strip().lower()
         elif content[0].attributes['mode'].value.lower() == 'xml' and \
              content[0].firstChild:
             data['content'] = content[0].firstChild.data.strip()
@@ -345,7 +345,7 @@ def _parse_request_xml(xmldata):
     # or wants to update it's data.
     link = dom.getElementsByTagName('link')
     if link and link[0].attributes['href'].value:
-        data['uid'] = link[0].attributes['href'].value
+        data['uid'] = link[0].attributes['href'].value.strip()
     return data
 
 if __name__ == '__main__':
