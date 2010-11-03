@@ -1,11 +1,15 @@
 # -*- coding: utf8 -*-
+"""
+Test server for shareonline library. This version uses web.py 0.3.
+"""
+# Python 2.5 compatibility
+from __future__ import with_statement
 
 import os
 import web
-import shareonline
-#import xml.dom.minidom
-import glob
 import sharing_settings
+import shareonline
+import glob
 
 urls = (
   '/', 'index',
