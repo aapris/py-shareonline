@@ -297,9 +297,9 @@ def create_entry(data):
     link_e.setAttribute('href', data['link'])
     entry_e.appendChild(link_e)
     entry_e.appendChild(create_element_with_text(doc, 'id', data['id']))
-    return doc.toprettyxml('', newl='', encoding='utf-8')
+    return doc.toprettyxml('', newl='\n', encoding='utf-8')
 
-###### Post data handlers ###### 
+###### Post data handlers ######
  
 def _save_post_data(raw_post_data, path, postfix):
     """
