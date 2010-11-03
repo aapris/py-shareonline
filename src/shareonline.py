@@ -266,7 +266,7 @@ def services(slist):
         for attr in link.keys():
             link_e.setAttribute(attr, link[attr])
         feed_e.appendChild(link_e)
-    return services_doc.toprettyxml('', newl='', encoding='utf-8')
+    return services_doc.toprettyxml(' ', newl='\n', encoding='utf-8')
 
 ###### Post handlers ######
 
